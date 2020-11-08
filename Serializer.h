@@ -30,15 +30,17 @@ namespace Serializer
     private:
         uint32_t datasize;
         std::unique_ptr<char> data;
-    public://TODO Declare the functions
+
+    public:
+        template <typename T>
+        PrimativeObject(T &ob);
         template <typename T>
         PrimativeObject(T ob);
         template <typename T>
-        PrimativeObject(char *ptr, uint32_t datasize);
-        template <typename T>
         T GetObject();
 
-        void PushToCharVec(std::vector<char>& cvec,std::string name);
+        PrimativeObject(char *ptr, uint32_t datasize_);
+        void PushToCharVec(std::vector<char> &cvec, std::string name);
         //~PrimativeObject();
     };
 
@@ -48,15 +50,15 @@ namespace Serializer
         uint32_t datasize;
         uint16_t objectsize;
         std::unique_ptr<char> data; //The first 2 bytes represents object size
-    public://TODO Declare the functions
+
+    public:
         template <typename T>
-        PrimativeArray(std::vector<T> objvec);
-        template <typename T>
-        PrimativeArray(char *ptr, uint32_t datasize);
+        PrimativeArray(std::vector<T>& objvec);
         template <typename T>
         std::vector<T> GetObjectVec();
 
-        void PushToCharVec(std::vector<char>& cvec,std::string name);
+        PrimativeArray(char *ptr, uint32_t datasize_);
+        void PushToCharVec(std::vector<char> &cvec, std::string name);
         //~PrimativeArray();
     };
 
