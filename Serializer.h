@@ -27,16 +27,16 @@ namespace Serializer
 
     class PrimativeObject
     {
-    private:
+    private://TODO store the data in a char vector
         uint32_t datasize;
-        std::unique_ptr<char> data;
+        std::shared_ptr<char> data;
 
     public:
         template <typename T>
         PrimativeObject(T& ob)
         {
             datasize = sizeof(T);
-            data = std::make_unique<char>(sizeof(T));
+            data = std::shared_ptr<char>(sizeof(T));
             memcpy(data, &ob, sizeof(T));
         }
         template <typename T>
@@ -57,10 +57,10 @@ namespace Serializer
 
     class PrimativeArray
     {
-    private:
+    private://TODO store the data in a char vector
         uint32_t datasize;
         uint16_t objectsize;
-        std::unique_ptr<char> data; //The first 2 bytes represents object size
+        std::shared_ptr<char> data; //The first 2 bytes represents object size
 
     public:
         template <typename T>
@@ -68,7 +68,7 @@ namespace Serializer
         {
             datasize = sizeof(T) * objvec.size() + 2;
             objectsize = sizeof(T);
-            data = std::make_unique<char>(datasize);
+            data = std::shared_ptr<char>(datasize);
             memcpy(data.get() + 2, &objvec[0], sizeof(T) * objvec.size());
         }
 
@@ -103,6 +103,7 @@ namespace Serializer
     public:
         void PushToCharVec(std::vector<char>& cvec, std::string& name);
         Array(char* ptr, uint32_t dataSize);
+        Array();
     };
 
     class Object
@@ -116,14 +117,96 @@ namespace Serializer
     public:
         void PushToCharVec(std::vector<char>& cvec, std::string& name);
         Object(char* ptr, uint32_t dataSize);
+        Object();
 
         Object& GetObject(std::string& name);
         Object& GetObject(const char* nameptr);
         Array& GetArray(std::string& name);
         Array& GetArray(const char* nameptr);
 
+        //Creates a new Object at vector and turns back a reference to it.
+        inline Object& PushObject(const std::string& name, const Object& ob)
+        {
+            Objects.push_back(std::pair<std::string, Object>(name, ob));
+            return Objects.back().second;
+        }
+
+        //Creates a new Object at vector and turns back a reference to it.
+        inline Object& PushObject(const std::string& name)
+        {
+            Objects.push_back(std::pair<std::string, Object>(name, Object()));
+            return Objects.back().second;
+        }
+
+        //Creates a new Array at vector and turns back a reference to it.
+        inline Array& PushArray(const std::string& name, const Array& arr)
+        {
+            Arrays.push_back(std::pair<std::string, Array>(name, arr));
+            return Arrays.back().second;
+        }
+
+        //Creates a new Array at vector and turns back a reference to it.
+        inline Array& PushArray(const std::string& name)
+        {
+            Arrays.push_back(std::pair<std::string, Array>(name, Array()));
+            return Arrays.back().second;
+        }
+
+        //const char*
+        //Creates a new Object at vector and turns back a reference to it.
+        inline Object& PushObject(const char* nameptr, const Object& ob)
+        {
+            Objects.push_back(std::pair<std::string, Object>(std::string(nameptr), ob));
+            return Objects.back().second;
+        }
+
+        //Creates a new Object at vector and turns back a reference to it.
+        inline Object& PushObject(const char* nameptr)
+        {
+            Objects.push_back(std::pair<std::string, Object>(std::string(nameptr), Object()));
+            return Objects.back().second;
+        }
+
+        //Creates a new Array at vector and turns back a reference to it.
+        inline Array& PushArray(const char* nameptr, const Array& arr)
+        {
+            Arrays.push_back(std::pair<std::string, Array>(std::string(nameptr), arr));
+            return Arrays.back().second;
+        }
+
+        //Creates a new Array at vector and turns back a reference to it.
+        inline Array& PushArray(const char* nameptr)
+        {
+            Arrays.push_back(std::pair<std::string, Array>(std::string(nameptr), Array()));
+            return Arrays.back().second;
+        }
+
         template<typename T>
-        T& GetPObject(std::string& name)
+        void PushPObject(const std::string& name, T& ob)
+        {
+            PObjects.push_back(std::pair<std::string, PrimativeObject>(name, PrimativeObject(ob)));
+        }
+
+        template<typename T>
+        void PushPArray(const std::string& name, std::vector<T>& ob)
+        {
+            PArrays.push_back(std::pair<std::string, PrimativeArray>(name, PrimativeArray(ob)));
+        }
+
+        template<typename T>
+        void PushPObject(const char* nameptr, T& ob)
+        {
+            PObjects.push_back(std::pair<std::string, PrimativeObject>(std::string(nameptr), PrimativeObject(ob)));
+        }
+
+        template<typename T>
+        void PushPArray(const char* nameptr, std::vector<T>& ob)
+        {
+            PArrays.push_back(std::pair<std::string, PrimativeArray>(std::string(nameptr), PrimativeArray(ob)));
+        }
+
+        template<typename T>
+        const T& GetPObject(std::string& name)
         {
             for (auto& p : PObjects)
             {
@@ -134,7 +217,7 @@ namespace Serializer
         }
 
         template<typename T>
-        T& GetPObject(const char* nameptr)
+        const T& GetPObject(const char* nameptr)
         {
             std::string name(nameptr);
             for (auto& p : PObjects)
