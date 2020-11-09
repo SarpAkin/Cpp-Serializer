@@ -33,15 +33,14 @@ namespace Serializer
 
     public:
         template <typename T>
-        PrimativeObject(T& ob);
-        PrimativeObject::PrimativeObject(T& ob)
+        PrimativeObject(T& ob)
         {
             datasize = sizeof(T);
             data = std::make_unique<char>(sizeof(T));
             memcpy(data, &ob, sizeof(T));
         }
         template <typename T>
-        T& GetObject();
+        T& GetObject()
         {
             if (sizeof(T) != datasize)
                 throw "sizof T does not match with datasize";
@@ -65,16 +64,16 @@ namespace Serializer
 
     public:
         template <typename T>
-        PrimativeArray(std::vector<T>& objvec);
+        PrimativeArray(std::vector<T>& objvec)
         {
             datasize = sizeof(T) * objvec.size() + 2;
             objectsize = sizeof(T);
             data = std::make_unique<char>(datasize);
             memcpy(data.get() + 2, &objvec[0], sizeof(T) * objvec.size());
         }
-        
+
         template <typename T>
-        std::vector<T> GetObjectVec();
+        std::vector<T> GetObjectVec()
         {
             if ((datasize - 2) % sizeof(T) != 0)
                 throw "sizof T does not match with datasize";
