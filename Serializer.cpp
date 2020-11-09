@@ -4,39 +4,7 @@
 
 namespace Serializer
 {
-    template <typename T>
-    PrimativeObject::PrimativeObject(T& ob)
-    {
-        datasize = sizeof(T);
-        data = std::make_unique<char>(sizeof(T));
-        memcpy(data, &ob, sizeof(T));
-    }
-
-    template <typename T>
-    PrimativeObject::PrimativeObject(T ob)
-    {
-        datasize = sizeof(T);
-        data = std::make_unique<char>(sizeof(T));
-        memcpy(data.get(), &ob, sizeof(T));
-    }
-
-    template <typename T>
-    PrimativeArray::PrimativeArray(std::vector<T>& objvec)
-    {
-        datasize = sizeof(T) * objvec.size() + 2;
-        objectsize = sizeof(T);
-        data = std::make_unique<char>(datasize);
-        memcpy(data.get() + 2, &objvec[0], sizeof(T) * objvec.size());
-    }
-
-    template <typename T>
-    PrimativeArray::PrimativeArray(std::vector<T> objvec)
-    {
-        datasize = sizeof(T) * objvec.size() + 2;
-        objectsize = sizeof(T);
-        data = std::make_unique<char>(datasize);
-        memcpy(data.get() + 2, &objvec[0], sizeof(T) * objvec.size());
-    }
+    
 
     PrimativeObject::PrimativeObject(char* ptr, uint32_t datasize_)
     {
@@ -51,33 +19,6 @@ namespace Serializer
         data = std::make_unique<char>(sizeof(datasize));
         memcpy(data.get(), ptr, datasize);
         objectsize = *(uint16_t*)data.get();
-    }
-
-    template <typename T>
-    T& PrimativeObject::GetObject()
-    {
-        if (sizeof(T) != datasize)
-            throw "sizof T does not match with datasize";
-        /*T r;
-        memcpy(&r, data.get(), sizeof(T));*/
-        T& r = *(T*)data.get();
-        return r;
-    }
-
-    template <typename T>
-    std::vector<T> PrimativeArray::GetObjectVec()
-    {
-        if ((datasize - 2) % sizeof(T) != 0)
-            throw "sizof T does not match with datasize";
-        int elementAmount = (datasize - 2) / objectsize;
-        std::vector<T> retv;
-        retv.reserve(elementAmount);
-        char* endp = data.get() + datasize;
-        for (char* ptr = data.get() + 2; ptr < endp; ptr += sizeof(T))
-        {
-            retv.push_back(*(T*)ptr);
-        }
-        return retv;
     }
 
     void PrimativeObject::PushToCharVec(std::vector<char>& cvec, std::string name)
@@ -199,5 +140,44 @@ namespace Serializer
             uint32_t datasize_ = header.ObjectSize - (sizeof(header) + header.NameSize);
             Objects.push_back(Object(datap, datasize_));
         }
+    }
+
+    Object& Object::GetObject(std::string& name)
+    {
+        for (auto& p : Objects)
+        {
+            if (p.first == name)
+                return p.second;
+        }
+        throw "Object with the given name : " + name + " couldn't found";
+    }
+    Object& Object::GetObject(const char* nameptr)
+    {
+        std::string name(nameptr);
+        for (auto& p : Objects)
+        {
+            if (p.first == name)
+                return p.second;
+        }
+        throw "Object with the given name : " + name + " couldn't found";
+    }
+    Array& Object::GetArray(std::string& name)
+    {
+        for (auto& p : Arrays)
+        {
+            if (p.first == name)
+                return p.second;
+        }
+        throw "Object with the given name : " + name + " couldn't found";
+    }
+    Array& Object::GetArray(const char* nameptr)
+    {
+        std::string name(nameptr);
+        for (auto& p : Arrays)
+        {
+            if (p.first == name)
+                return p.second;
+        }
+        throw "Object with the given name : " + name + " couldn't found";
     }
 } // namespace Serializer
