@@ -8,7 +8,7 @@
 namespace Serializer
 {
     const int HeaderSize = 4;
-    const char StaticHeader[] = {'S', 'A', 0x01, 0x00};
+    const char StaticHeader[] = { 'S', 'A', 0x01, 0x00 };
 
     enum ObjectType : uint8_t
     {
@@ -33,14 +33,14 @@ namespace Serializer
 
     public:
         template <typename T>
-        PrimativeObject(T &ob);
+        PrimativeObject(T& ob);
         template <typename T>
         PrimativeObject(T ob);
         template <typename T>
-        T GetObject();
+        T& GetObject();
 
-        PrimativeObject(char *ptr, uint32_t datasize_);
-        void PushToCharVec(std::vector<char> &cvec, std::string name);
+        PrimativeObject(char* ptr, uint32_t datasize_);
+        void PushToCharVec(std::vector<char>& cvec, std::string name);
         //~PrimativeObject();
     };
 
@@ -55,10 +55,12 @@ namespace Serializer
         template <typename T>
         PrimativeArray(std::vector<T>& objvec);
         template <typename T>
+        PrimativeArray(std::vector<T> objvec);
+        template <typename T>
         std::vector<T> GetObjectVec();
 
-        PrimativeArray(char *ptr, uint32_t datasize_);
-        void PushToCharVec(std::vector<char> &cvec, std::string name);
+        PrimativeArray(char* ptr, uint32_t datasize_);
+        void PushToCharVec(std::vector<char>& cvec, std::string name);
         //~PrimativeArray();
     };
 
@@ -66,15 +68,24 @@ namespace Serializer
 
     class Array
     {
+    public:
         std::vector<Object> Objects;
+
+    public:
+        void PushToCharVec(std::vector<char>& cvec, std::string& name);
+        Array(char* ptr,uint32_t dataSize);
     };
 
     class Object
     {
     private:
-        std::map<std::string, Object> Objects;
-        std::map<std::string, Array> Arrays;
-        std::map<std::string, PrimativeObject> PObjects;
-        std::map<std::string, PrimativeArray> PArrays;
+        std::vector<std::pair<std::string, Object>> Objects;
+        std::vector<std::pair<std::string, Array>> Arrays;
+        std::vector<std::pair<std::string, PrimativeObject>> PObjects;
+        std::vector<std::pair<std::string, PrimativeArray>> PArrays;
+
+    public:
+        void PushToCharVec(std::vector<char>& cvec, std::string& name);
+        Object(char* ptr,uint32_t dataSize);
     };
 } // namespace Serializer
