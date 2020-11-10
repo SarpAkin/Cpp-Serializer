@@ -4,7 +4,7 @@
 
 namespace Serializer
 {
-    
+
 
     PrimativeObject::PrimativeObject(char* ptr, uint32_t datasize_)
     {
@@ -48,10 +48,6 @@ namespace Serializer
     void Object::PushToCharVec(std::vector<char>& cvec, std::string& name)
     {
         std::vector<char> datavec;
-        /*
-        uint16_t elementCount =
-            Objects.size() + Arrays.size() + PObjects.size() + PArrays.size();*/
-            //datavec.insert(datavec.end(), (char*)&elementCount, (char*)&elementCount + 2);
         for (auto& p : Objects)
         {
             p.second.PushToCharVec(datavec, p.first);
@@ -69,7 +65,7 @@ namespace Serializer
             p.second.PushToCharVec(datavec, p.first);
         }
         ObjectHeader header;
-        header.type = ObjectType::PrimativeArrayT;
+        header.type = ObjectType::ObjectT;
         header.NameSize = name.size();
         header.ObjectSize = sizeof(ObjectHeader) + header.NameSize + datavec.size();
         cvec.reserve(cvec.size() + header.ObjectSize);
@@ -179,5 +175,35 @@ namespace Serializer
                 return p.second;
         }
         throw "Object with the given name : " + name + " couldn't found";
+    }
+
+    Object::Object()
+    {
+        //do nothing
+    }
+
+    Array::Array()
+    {
+        //do nothing
+    }
+
+    std::vector<char> ParseToCharVector(Object& root)
+    {
+        std::vector<char> datavec(std::begin(StaticHeader), std::end(StaticHeader));
+        //datavec.insert(datavec.end(),std::begin(StaticHeader),std::end(StaticHeader));
+        std::string rootStr("root");
+        root.PushToCharVec(datavec, rootStr);
+        //TODO Add footer
+        return datavec;
+    }
+
+    void ParseToObject(Object& root, std::vector<char>& stream)
+    {
+        char* ptr = &(*(stream.begin() + sizeof(StaticHeader)));
+        ObjectHeader header = *(ObjectHeader*)ptr;
+        char* datap = ptr + sizeof(header) + header.NameSize;
+        uint32_t datasize_ = header.ObjectSize - (sizeof(header) + header.NameSize);
+        root = Object(datap, datasize_);
+        //TODO Add footer
     }
 } // namespace Serializer

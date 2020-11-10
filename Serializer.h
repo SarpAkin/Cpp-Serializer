@@ -36,8 +36,8 @@ namespace Serializer
         PrimativeObject(T& ob)
         {
             datasize = sizeof(T);
-            data = std::shared_ptr<char>(sizeof(T));
-            memcpy(data, &ob, sizeof(T));
+            data = std::make_shared<char>(sizeof(T));
+            memcpy(data.get(), &ob, sizeof(T));
         }
         template <typename T>
         T& GetObject()
@@ -68,7 +68,8 @@ namespace Serializer
         {
             datasize = sizeof(T) * objvec.size() + 2;
             objectsize = sizeof(T);
-            data = std::shared_ptr<char>(datasize);
+            data = std::make_shared<char>(datasize);
+            memcpy(data.get(),(char*)&objectsize,2);
             memcpy(data.get() + 2, &objvec[0], sizeof(T) * objvec.size());
         }
 
@@ -108,7 +109,7 @@ namespace Serializer
 
     class Object
     {
-    private:
+    public:
         std::vector<std::pair<std::string, Object>> Objects;
         std::vector<std::pair<std::string, Array>> Arrays;
         std::vector<std::pair<std::string, PrimativeObject>> PObjects;
@@ -213,7 +214,7 @@ namespace Serializer
                 if (p.first == name)
                     return p.second.GetObject<T>();
             }
-            throw "Object with the given name : " + name + " couldn't found";
+            throw "Object with the given name couldn't found";
         }
 
         template<typename T>
@@ -225,7 +226,7 @@ namespace Serializer
                 if (p.first == name)
                     return p.second.GetObject<T>();
             }
-            throw "Object with the given name : " + name + " couldn't found";
+            throw "Object with the given name couldn't found";
         }
 
         template<typename T>
@@ -236,7 +237,7 @@ namespace Serializer
                 if (p.first == name)
                     return p.second.GetObjectVec<T>();
             }
-            throw "Object with the given name : " + name + " couldn't found";
+            throw "Object with the given name couldn't found";
         }
 
         template<typename T>
@@ -248,7 +249,10 @@ namespace Serializer
                 if (p.first == name)
                     return p.second.GetObjectVec<T>();
             }
-            throw "Object with the given name : " + name + " couldn't found";
+            throw "Object with the given name couldn't found";
         }
     };
+
+    std::vector<char> ParseToCharVector(Object& root);
+    void ParseToObject(Object& root, std::vector<char>& stream);
 } // namespace Serializer
